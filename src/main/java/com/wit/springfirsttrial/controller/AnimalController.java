@@ -1,6 +1,8 @@
 package com.wit.springfirsttrial.controller;
 
+import com.wit.springfirsttrial.dto.AnimalResponse;
 import com.wit.springfirsttrial.entity.Animal;
+import com.wit.springfirsttrial.validation.AninalValidation;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
@@ -16,26 +18,52 @@ public class AnimalController {
     public List<Animal> findAll() {
         return animals.values().stream().toList();
     }
+    //TODO validation ekle
 
     @GetMapping("/{id}")
-    public Animal find(@PathVariable int id) {
-        return animals.get(id);
+    public AnimalResponse find(@PathVariable int id) {
+        if(!AninalValidation.isIdValid(id)){
+            return new AnimalResponse(null,"animal id is not valid",400);
+        }
+        if(!AninalValidation.isAnimalContains(animals,id)){
+            return new AnimalResponse(null,"animal with given id is not exist " + id,400);
+        }
+        return new AnimalResponse(animals.get(id).getName(),"Success",200);
     }
 
     @PostMapping("/")
-    public Animal save(@RequestBody Animal animal) {
-        animals.put(animal.getId(), animal);
-        return animal;
+    public AnimalResponse save(@RequestBody Animal animal) {
+        if(!AninalValidation.isAnimalCredentialsValid(animal)){
+        return new AnimalResponse(null,"animal credentials are not valid",400);
+        }
+        animals.put(animal.getId(),animal);
+        return new AnimalResponse(animals.get(animal.getId()).getName(),"success",200);
     }
 
     @PutMapping("/{id}")
-    public Animal update(@PathVariable int id, @RequestBody Animal animal) {
+    public AnimalResponse update(@PathVariable int id, @RequestBody Animal animal) {
+        animal.setId(id);
+        if(!AninalValidation.isIdValid(id)){
+            return new AnimalResponse(null,"animal id is not valid",400);
+        }
+        if(!AninalValidation.isAnimalContains(animals,id)){
+            return new AnimalResponse(null,"animal with given id is not exist " + id,400);
+        }
+        if(!AninalValidation.isAnimalCredentialsValid(animal)){
+            return new AnimalResponse(null,"animal credentials are not valid",400);
+        }
         animals.put(id, new Animal(id, animal.getName()));
-        return animals.get(id);
+        return new AnimalResponse(animals.get(id).getName(),"success",200);
     }
 
     @DeleteMapping("{id}")
-    public Animal remove(@PathVariable int id){
-        return animals.remove(id);
+    public AnimalResponse remove(@PathVariable int id){
+        if(!AninalValidation.isIdValid(id)){
+            return new AnimalResponse(null,"animal id is not valid",400);
+        }
+        if(!AninalValidation.isAnimalContains(animals,id)){
+            return new AnimalResponse(null,"animal with given id is not exist " + id,400);
+        }
+        return new AnimalResponse(animals.remove(id).getName(), "success",200);
     }
 }
